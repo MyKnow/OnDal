@@ -9,21 +9,26 @@ import SwiftUI
 
 struct MessageCardView: View {
     @Environment(\.colorScheme) var colorScheme
-    @Binding var message: Message
+    @Binding var model: TimestampableStringModel
     var isUser: Bool = true
+    
+    init(model: TimestampableStringModel, isUser: Bool = true) {
+        _model = .constant(model)
+        self.isUser = isUser
+    }
     
     var body: some View {
         HStack {
             isUser ? Spacer() : nil
             VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
-                Text(message.text)
+                Text(model.content)
                     .foregroundColor(isUser ? .white : (colorScheme == .dark ? .white : .black.mix(with: .white, by: 0.2)))
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(isUser ? Color.blue : Color.gray)
+                            .fill(isUser ? Color.blue : Color.gray.opacity(0.4))
                     )
-                Text(message.timestamp, style: .time)
+                Text(model.createdAt, style: .time)
                     .padding([.top, .horizontal], 4)
                     .font(.caption2)
                     .foregroundColor(.gray)
@@ -37,6 +42,8 @@ struct MessageCardView: View {
 }
 
 #Preview {
-    @Previewable @State var message: Message = Message(text: String(repeating: "testMessage", count: 15), timestamp: Date())
-    MessageCardView(message: $message, isUser: false)
+    @Previewable @Environment(\.colorScheme) var colorScheme
+    @Previewable @State var model: TimestampableStringModel = TimestampableStringModel(String(repeating: "testMessage", count: 15))
+    
+    MessageCardView(model: model, isUser: false)
 }

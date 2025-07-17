@@ -7,22 +7,10 @@
 
 import SwiftUI
 
-struct Message: Identifiable {
-    let id = UUID()
-    let text: String
-    let timestamp: Date
-}
-
 struct DiaryEditView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isRecording = false
-    @State private var messages: [Message] = [
-        Message(text: String(repeating: "testMessage", count: 15), timestamp: Date()),
-        Message(text: String(repeating: "testMessage", count: 15), timestamp: Date()),
-        Message(text: String(repeating: "testMessage", count: 15), timestamp: Date()),
-        Message(text: String(repeating: "testMessage", count: 15), timestamp: Date()),
-        Message(text: String(repeating: "testMessage", count: 15), timestamp: Date()),
-    ]
+    @State private var diaryModel: DiaryModel = DiaryModel()
     
     var body: some View {
         ZStack {
@@ -30,9 +18,13 @@ struct DiaryEditView: View {
                 .ignoresSafeArea()
             NavigationStack {
                 ScrollView {
-                    ForEach($messages) { message in
-                        MessageCardView(message: message, isUser: false)
-                        MessageCardView(message: message)
+                    ForEach(diaryModel.qna) { qna in
+                        MessageCardView(model: qna.question, isUser: false)
+                        if !qna.isNotYetAnswered {
+                            if let answer = qna.answer {
+                                MessageCardView(model: answer)
+                            }
+                        }
                     }
                 }
                 .navigationTitle("오늘의 일기")
@@ -41,8 +33,8 @@ struct DiaryEditView: View {
                         if isRecording {
                             Button {
                                 isRecording = false
-                                let newMessage = Message(text: "녹음된 텍스트", timestamp: Date())
-                                messages.append(newMessage)
+                                let newQnA = QnAModel(question: "질문")
+                                diaryModel.addNewQna(newQnA)
                             } label: {
                                 Image(systemName: "square.fill")
                                     .foregroundStyle(.red)
@@ -56,8 +48,6 @@ struct DiaryEditView: View {
                             }
                         }
                     }
-                }
-                .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Menu {
                             Button(role: .cancel, action: {
@@ -81,6 +71,9 @@ struct DiaryEditView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            diaryModel.addDefaultQna()
         }
     }
 }
